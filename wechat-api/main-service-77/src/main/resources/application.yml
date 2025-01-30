@@ -1,0 +1,10 @@
+server:
+  port: 77
+  tomcat:
+    uri-encoding: UTF-8
+    max-swallow-size: -1 # 不限制请求体大小
+
+# 日志级别
+logging:
+  level:
+    root: info
