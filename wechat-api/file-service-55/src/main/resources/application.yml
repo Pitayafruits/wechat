@@ -4,6 +4,17 @@ server:
     uri-encoding: UTF-8
     max-swallow-size: -1 # 不限制请求体大小
 
+spring:
+  application:
+    name: file-service
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        username: nacos
+        password: naocs
+
+
 # 日志级别
 logging:
   level:
