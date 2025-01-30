@@ -1,12 +1,12 @@
 server:
-  port: 88
+  port: 55
   tomcat:
     uri-encoding: UTF-8
     max-swallow-size: -1 # 不限制请求体大小
 
 spring:
   application:
-    name: auth-service
+    name: file-service
   cloud:
     nacos:
       config:
