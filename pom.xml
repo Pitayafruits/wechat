@@ -15,6 +15,7 @@
         <module>wechat-common</module>
         <module>wechat-pojo</module>
         <module>wechat-api</module>
+        <module>wechat-gateway</module>
     </modules>
 
     <properties>
