@@ -14,7 +14,30 @@ spring:
         server-addr: 127.0.0.1:8848
         username: nacos
         password: naocs
-
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 开启从注册中心动态创建路由的功能，利用微服务名进行路由
+      routes:           # 路由配置信息(数组/list)
+        - id: authRoute # 每项路由规则都有一个唯一的id编号，可以自定义
+          uri: lb://auth-service # lb=负载均衡，会动态寻址
+          predicates:
+            - Path=/a/**
+        - id: fileRoute
+          uri: lb://file-service
+          predicates:
+            - Path=/f/**
+        - id: mainRoute
+          uri: lb://main-service
+          predicates:
+            - Path=/m/**
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedHeaders: "*"
+            allowedMethods: "*"
+            allowCredentials: true
 
 
 # 日志级别
