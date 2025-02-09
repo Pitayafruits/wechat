@@ -1,6 +1,6 @@
 package com.pitayafruits.exceptions;
 
-import org.itzixi.grace.result.ResponseStatusEnum;
+import com.pitayafruits.grace.result.ResponseStatusEnum;
 
 /**
  * 自定义异常

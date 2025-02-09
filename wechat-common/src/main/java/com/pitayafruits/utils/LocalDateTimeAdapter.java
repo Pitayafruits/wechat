@@ -1,4 +1,4 @@
-package com.pitayafruits.utils;// package org.itzixi.utils;
+package com.pitayafruits.utils;
 //
 // import com.google.gson.*;
 //

@@ -1,7 +1,7 @@
 package com.pitayafruits.exceptions;
 
-import org.itzixi.grace.result.GraceJSONResult;
-import org.itzixi.grace.result.ResponseStatusEnum;
+import com.pitayafruits.grace.result.GraceJSONResult;
+import com.pitayafruits.grace.result.ResponseStatusEnum;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;

@@ -4,7 +4,7 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.itzixi.grace.result.GraceJSONResult;
+import com.pitayafruits.grace.result.GraceJSONResult;
 
 /**
  * @Auther 风间影月

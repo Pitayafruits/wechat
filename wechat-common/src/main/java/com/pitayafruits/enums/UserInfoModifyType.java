@@ -1,7 +1,7 @@
 package com.pitayafruits.enums;
 
-import org.itzixi.exceptions.GraceException;
-import org.itzixi.grace.result.ResponseStatusEnum;
+import com.pitayafruits.exceptions.GraceException;
+import com.pitayafruits.grace.result.ResponseStatusEnum;
 
 /**
  * @Desc: 修改用户信息类型 枚举
