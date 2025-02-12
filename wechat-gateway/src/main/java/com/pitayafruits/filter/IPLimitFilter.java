@@ -6,6 +6,7 @@ import com.pitayafruits.grace.result.GraceJSONResult;
 import com.pitayafruits.grace.result.ResponseStatusEnum;
 import com.pitayafruits.utils.IPUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -24,11 +25,14 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class IPLimitFilter extends BaseInfoProperties implements GlobalFilter, Ordered {
 
-    private static final Integer continueCounts = 3;
+    @Value("${blackIp.continueCounts}")
+    private Integer continueCounts;
 
-    private static final Integer timeInterval = 20;
+    @Value("${blackIp.timeInterval}")
+    private Integer timeInterval;
 
-    private static final Integer limitTimes = 30;
+    @Value("${blackIp.limitTimes}")
+    private Integer limitTimes;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
