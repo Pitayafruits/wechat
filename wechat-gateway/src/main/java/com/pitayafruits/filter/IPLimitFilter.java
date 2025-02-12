@@ -38,6 +38,9 @@ public class IPLimitFilter extends BaseInfoProperties implements GlobalFilter, O
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        log.info("continueCounts:" + continueCounts);
+        log.info("timeInterval:" + timeInterval);
+        log.info("limitTimes:" + limitTimes);
         return doLimit(exchange, chain);
     }
 
