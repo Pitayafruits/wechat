@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SMSUtils {
-    @Autowired
-    private TencentCloudProperties tencentCloudProperties;
+//    @Autowired
+//    private TencentCloudProperties tencentCloudProperties;
 
     public void sendSMS(String phone, String code) throws Exception {
 

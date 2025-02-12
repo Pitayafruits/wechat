@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 /**
  * @Auther 风间影月
  */
-@Component
-@Data
-@PropertySource("classpath:tencentCloud.properties")
-@ConfigurationProperties(prefix = "tencent.cloud")
+//@Component
+//@Data
+//@PropertySource("classpath:tencentCloud.properties")
+//@ConfigurationProperties(prefix = "tencent.cloud")
 public class TencentCloudProperties {
 
     private String SecretId;

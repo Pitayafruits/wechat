@@ -49,3 +49,9 @@ spring:
 logging:
   level:
     root: info
+
+
+blackIp:
+  continueCounts: 3 # ip连续请求次数
+  timeInterval: 60 # ip判断的时间间隔，单位：秒
+  limitTimes: 30 # 黑名单ip限制的时间，单位：秒
