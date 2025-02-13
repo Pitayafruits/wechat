@@ -5,6 +5,11 @@ server:
     max-swallow-size: -1 # 不限制请求体大小
 
 spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
   application:
     name: auth-service
   cloud:
