@@ -27,7 +27,7 @@ spring:
         - id: authRoute # 每项路由规则都有一个唯一的id编号，可以自定义
           uri: lb://auth-service # lb=负载均衡，会动态寻址
           predicates:
-            - Path=/a/**
+            - Path=/passport/**
         - id: fileRoute
           uri: lb://file-service
           predicates:
