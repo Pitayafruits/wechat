@@ -13,4 +13,18 @@ import com.pitayafruits.pojo.Users;
  */
 public interface IUsersService {
 
+    /**
+     * 根据手机号查询用户是否存在
+     * @param mobile
+     * @return
+     */
+    public Users queryMobileIfExist(String mobile);
+
+    /**
+     * 创建用户信息
+     * @param mobile
+     * @return
+     */
+    public Users createUser(String mobile);
+
 }
