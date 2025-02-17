@@ -3,13 +3,11 @@ package com.pitayafruits.controller;
 
 import com.pitayafruits.base.BaseInfoProperties;
 import com.pitayafruits.grace.result.GraceJSONResult;
+import com.pitayafruits.pojo.bo.RegistLoginBo;
 import com.pitayafruits.utils.IPUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("passport")
@@ -30,5 +28,18 @@ public class PassPortController extends BaseInfoProperties {
 
         return GraceJSONResult.ok();
     }
+
+
+    @PostMapping("regist")
+    public GraceJSONResult regist(@RequestBody  RegistLoginBo registLoginBo) {
+        String mobile = registLoginBo.getMobile();
+        String smsCode = registLoginBo.getSmsCode();
+
+        // 校验验证码
+
+
+        return GraceJSONResult.ok();
+    }
+
 
 }
