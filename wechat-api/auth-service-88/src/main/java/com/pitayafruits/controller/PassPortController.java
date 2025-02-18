@@ -59,7 +59,7 @@ public class PassPortController extends BaseInfoProperties {
         // 用户注册成功后，删除短信验证码
         redis.del(MOBILE_SMSCODE + ":" + mobile);
         // 返回数据
-        return GraceJSONResult.ok();
+        return GraceJSONResult.ok(user);
     }
 
 
