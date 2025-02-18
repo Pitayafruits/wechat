@@ -12,4 +12,6 @@ public class RegistLoginBo {
     private String mobile;
 
     private String smsCode;
+
+    private String nickname;
 }

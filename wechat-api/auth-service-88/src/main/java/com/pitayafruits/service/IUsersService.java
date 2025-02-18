@@ -25,6 +25,6 @@ public interface IUsersService {
      * @param mobile
      * @return
      */
-    public Users createUser(String mobile);
+    public Users createUser(String mobile, String nickname);
 
 }

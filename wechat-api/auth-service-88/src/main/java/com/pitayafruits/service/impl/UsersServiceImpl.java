@@ -8,8 +8,10 @@ import com.pitayafruits.enums.Sex;
 import com.pitayafruits.mapper.UsersMapper;
 import com.pitayafruits.pojo.Users;
 import com.pitayafruits.service.IUsersService;
+import com.pitayafruits.utils.DesensitizationUtil;
 import com.pitayafruits.utils.LocalDateUtils;
 import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +41,7 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
 
     @Override
     @Transactional
-    public Users createUser(String mobile) {
+    public Users createUser(String mobile, String nickname) {
         Users user = new Users();
 
         user.setMobile(mobile);
@@ -49,7 +51,11 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
         String wechatNum = "wx" + uuidStr[0] + uuidStr[1];
         user.setWechatNum(wechatNum);
 
-        user.setNickname("用户" + uuidStr[0]);
+        if (StringUtils.isNotBlank(nickname)) {
+            user.setNickname(nickname);
+        } else {
+            user.setNickname("用户" + DesensitizationUtil.commonDisplay(mobile));
+        }
         user.setRealName("");
         user.setSex(Sex.secret.type);
         user.setFace("");

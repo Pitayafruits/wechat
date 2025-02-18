@@ -41,6 +41,7 @@ public class PassPortController extends BaseInfoProperties {
     public GraceJSONResult regist(@RequestBody  RegistLoginBo registLoginBo) {
         String mobile = registLoginBo.getMobile();
         String smsCode = registLoginBo.getSmsCode();
+        String nickname = registLoginBo.getNickname();
 
         // 校验验证码
         String redisCode = redis.get(MOBILE_SMSCODE + ":" + mobile);
@@ -51,7 +52,7 @@ public class PassPortController extends BaseInfoProperties {
         Users user = usersService.queryMobileIfExist(mobile);
         if (user == null) {
             // 如果不存在，则创建用户
-            user = usersService.createUser(mobile);
+            user = usersService.createUser(mobile, nickname);
         } else {
             return GraceJSONResult.errorCustom(ResponseStatusEnum.USER_ALREADY_EXIST_ERROR);
         }
