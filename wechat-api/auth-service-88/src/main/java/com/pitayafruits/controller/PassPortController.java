@@ -63,4 +63,29 @@ public class PassPortController extends BaseInfoProperties {
     }
 
 
+    @PostMapping("login")
+    public GraceJSONResult login(@RequestBody  RegistLoginBo registLoginBo) {
+        String mobile = registLoginBo.getMobile();
+        String smsCode = registLoginBo.getSmsCode();
+
+        // 校验验证码
+        String redisCode = redis.get(MOBILE_SMSCODE + ":" + mobile);
+        if (StringUtils.isBlank(redisCode) || !redisCode.equalsIgnoreCase(smsCode)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.SMS_CODE_ERROR);
+        }
+        // 根据手机号查询用户是否存在
+        Users user = usersService.queryMobileIfExist(mobile);
+        if (user == null) {
+            // 如果不存在，则创建用户
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.USER_NOT_EXIST_ERROR);
+        }
+
+        // 用户注册成功后，删除短信验证码
+        redis.del(MOBILE_SMSCODE + ":" + mobile);
+
+        // 返回数据
+        return GraceJSONResult.ok(user);
+    }
+
+
 }
