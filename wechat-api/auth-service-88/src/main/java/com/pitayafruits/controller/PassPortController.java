@@ -10,6 +10,7 @@ import com.pitayafruits.service.IUsersService;
 import com.pitayafruits.utils.IPUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class PassPortController extends BaseInfoProperties {
 
 
     @PostMapping("regist")
-    public GraceJSONResult regist(@RequestBody  RegistLoginBo registLoginBo) {
+    public GraceJSONResult regist(@RequestBody  @Valid RegistLoginBo registLoginBo) {
         String mobile = registLoginBo.getMobile();
         String smsCode = registLoginBo.getSmsCode();
         String nickname = registLoginBo.getNickname();
@@ -64,7 +65,7 @@ public class PassPortController extends BaseInfoProperties {
 
 
     @PostMapping("login")
-    public GraceJSONResult login(@RequestBody  RegistLoginBo registLoginBo) {
+    public GraceJSONResult login(@RequestBody  @Valid RegistLoginBo registLoginBo) {
         String mobile = registLoginBo.getMobile();
         String smsCode = registLoginBo.getSmsCode();
 
