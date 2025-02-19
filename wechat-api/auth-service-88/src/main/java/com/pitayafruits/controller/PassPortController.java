@@ -146,4 +146,18 @@ public class PassPortController extends BaseInfoProperties {
         // 返回数据
         return GraceJSONResult.ok(usersVo);
     }
+
+    @PostMapping("logout")
+    public GraceJSONResult registOrLogin(@RequestParam String userId) {
+
+        redis.del(REDIS_USER_TOKEN + ":" + userId);
+
+        return GraceJSONResult.ok();
+
+    }
+
+
+
+
+
 }
