@@ -92,7 +92,7 @@ public class PassPortController extends BaseInfoProperties {
         // 根据手机号查询用户是否存在
         Users user = usersService.queryMobileIfExist(mobile);
         if (user == null) {
-            // 如果不存在，则创建用户
+            // 如果不存在，则提示
             return GraceJSONResult.errorCustom(ResponseStatusEnum.USER_NOT_EXIST_ERROR);
         }
 
@@ -111,6 +111,53 @@ public class PassPortController extends BaseInfoProperties {
 
         return GraceJSONResult.ok(usersVo);
     }
+
+    @PostMapping("registOrLogin")
+    public GraceJSONResult registOrLogin(@RequestBody  @Valid RegistLoginBo registLoginBo) {
+        String mobile = registLoginBo.getMobile();
+        String smsCode = registLoginBo.getSmsCode();
+        String nickname = registLoginBo.getNickname();
+
+        // 校验验证码
+        String redisCode = redis.get(MOBILE_SMSCODE + ":" + mobile);
+        if (StringUtils.isBlank(redisCode) || !redisCode.equalsIgnoreCase(smsCode)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.SMS_CODE_ERROR);
+        }
+        // 根据手机号查询用户是否存在
+        Users user = usersService.queryMobileIfExist(mobile);
+        if (user == null) {
+            // 如果不存在，则创建用户
+            user = usersService.createUser(mobile, nickname);
+        }
+
+        // 用户注册或登录成功后，删除短信验证码
+        redis.del(MOBILE_SMSCODE + ":" + mobile);
+
+        // 设置用户分布式会话
+        String uToken = TOKEN_USER_PREFIX + SYMBOL_DOT + UUID.randomUUID();
+        redis.set(REDIS_USER_TOKEN + ":" + user.getId(), uToken);
+
+
+        // 返回数据
+        UsersVo usersVo = new UsersVo();
+        BeanUtils.copyProperties(user, usersVo);
+        usersVo.setUserToken(uToken);
+
+        // 返回数据
+        return GraceJSONResult.ok(usersVo);
+    }
+
+    @PostMapping("logout")
+    public GraceJSONResult registOrLogin(@RequestParam String userId) {
+
+        redis.del(REDIS_USER_TOKEN + ":" + userId);
+
+        return GraceJSONResult.ok();
+
+    }
+
+
+
 
 
 }
