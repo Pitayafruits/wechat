@@ -33,11 +33,23 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
     @Override
     @Transactional
     public void modifyUserInfo(ModifyUserBO modifyUserBO) {
+
+        String wechatNum = modifyUserBO.getWechatNum();
+
         Users pendingUser = new Users();
 
         String userId = modifyUserBO.getUserId();
+
+
         if (StringUtils.isBlank(userId)) {
             GraceException.display(ResponseStatusEnum.USER_INFO_UPDATED_ERROR);
+        }
+
+        if (StringUtils.isNotBlank(wechatNum)) {
+            String isExist = redis.get(REDIS_USER_ALREADY_UPDATE_WECHAT_NUM + ":" + userId);
+            if (StringUtils.isNotBlank(isExist)) {
+                GraceException.display(ResponseStatusEnum.WECHAT_NUM_ALREADY_MODIFIED_ERROR);
+            }
         }
 
         pendingUser.setId(userId);
@@ -46,6 +58,11 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
         BeanUtils.copyProperties(modifyUserBO, pendingUser);
 
         usersMapper.updateById(pendingUser);
+
+        if (StringUtils.isNotBlank(wechatNum)) {
+            redis.setByDays(REDIS_USER_ALREADY_UPDATE_WECHAT_NUM + ":" + userId,
+                    userId, 365);
+        }
 
 
     }
