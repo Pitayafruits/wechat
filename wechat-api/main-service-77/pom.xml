@@ -11,4 +11,12 @@
 
     <artifactId>main-service-77</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.pitayafruits</groupId>
+            <artifactId>base-service</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
 </project>
