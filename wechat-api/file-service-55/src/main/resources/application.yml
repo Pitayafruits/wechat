@@ -5,6 +5,10 @@ server:
     max-swallow-size: -1 # 不限制请求体大小
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 500KB
+      max-request-size: 500KB
   application:
     name: file-service
   cloud:
