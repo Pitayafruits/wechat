@@ -1,4 +1,4 @@
-package com.pitayafruits.api.config;
+package com.pitayafruits.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
