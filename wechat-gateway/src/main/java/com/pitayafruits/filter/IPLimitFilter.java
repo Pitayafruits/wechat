@@ -114,15 +114,8 @@ public class IPLimitFilter extends BaseInfoProperties implements GlobalFilter, O
     //过滤器的顺序，数字越小优先级越大.
     @Override
     public int getOrder() {
-        return 0;
+        return 1;
     }
 
-    /**
-     * 限制IP访问次数
-     * @param ip
-     * @param maxCount
-     * @param time
-     * @return
-     */
 
 }
