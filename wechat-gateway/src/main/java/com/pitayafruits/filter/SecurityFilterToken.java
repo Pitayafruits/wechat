@@ -50,6 +50,15 @@ public class SecurityFilterToken extends BaseInfoProperties implements GlobalFil
                 }
             }
         }
+
+        // 排除静态资源
+        String fileStart = excludeUrlProperties.getFileStart();
+        if (StringUtils.isNotBlank(fileStart)) {
+            if (antPathMatcher.matchStart(fileStart, url)) {
+                return chain.filter(exchange);
+            }
+        }
+
         // 从header中获得用户id和token
         String userId = exchange.getRequest().getHeaders().getFirst(HEADER_USER_ID);
         String userToken = exchange.getRequest().getHeaders().getFirst(HEADER_USER_TOKEN);
