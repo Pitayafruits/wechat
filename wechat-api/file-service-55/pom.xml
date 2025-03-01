@@ -11,4 +11,14 @@
 
     <artifactId>file-service-55</artifactId>
 
+    <dependencies>
+        <!-- minio相关依赖 -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+        </dependency>
+    </dependencies>
+
+
+
 </project>
