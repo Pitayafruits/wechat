@@ -2,41 +2,46 @@ package com.pitayafruits.controller;
 
 
 import com.pitayafruits.base.BaseInfoProperties;
+import com.pitayafruits.config.MinIOConfig;
 import com.pitayafruits.grace.result.GraceJSONResult;
+import com.pitayafruits.grace.result.ResponseStatusEnum;
+import com.pitayafruits.utils.MinIOUtils;
+import jakarta.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.IOException;
 
 @RestController
 @RequestMapping("file")
 public class FileController extends BaseInfoProperties {
 
+    @Resource
+    private MinIOConfig minIOConfig;
+
     @PostMapping("uploadFace")
-    public GraceJSONResult upload(@RequestBody MultipartFile file,
-                                  String userId) throws IOException {
-
-        // 声明文件的新名称
-        String filename = file.getOriginalFilename();
-        String suffixName = filename.substring(filename.lastIndexOf("."));
-        String newFileName = userId + suffixName;
-
-        // 设置文件的存储路径
-        String rootPath = "/temp" + File.separator;
-        String filePath = rootPath + File.separator + "face" + File.separator + newFileName;
-        File newFile = new File(filePath);
-
-        // 如果目标文件的目录不存在，则创建父级目录
-        if (!newFile.getParentFile().exists()) {
-            newFile.getParentFile().mkdirs();
+    public GraceJSONResult upload(@RequestParam MultipartFile file,
+                                 String userId) throws Exception {
+        if (StringUtils.isBlank(userId)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
         }
 
-        // 写入文件
-        file.transferTo(newFile);
+        String filename = file.getOriginalFilename();
 
-        return GraceJSONResult.ok();
+        if (StringUtils.isBlank(filename)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+        }
+
+        filename = "face" +  "/" + userId + "/" + filename;
+
+        MinIOUtils.uploadFile(minIOConfig.getBucketName(), filename, file.getInputStream());
+
+        String faceUrl = minIOConfig.getFileHost()
+                + "/"
+                + minIOConfig.getBucketName()
+                + "/"
+                + filename;
+
+        return GraceJSONResult.ok(faceUrl);
     }
-
 
 }

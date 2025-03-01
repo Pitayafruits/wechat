@@ -91,6 +91,13 @@
                 <artifactId>mybatis-spring</artifactId>
                 <version>3.0.3</version>
             </dependency>
+
+            <!-- minio相关依赖 -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>8.5.17</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
