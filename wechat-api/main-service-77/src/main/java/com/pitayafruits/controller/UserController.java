@@ -1,6 +1,7 @@
 package com.pitayafruits.controller;
 
 
+import com.pitayafruits.api.feign.UserInfoMicroServiceFeign;
 import com.pitayafruits.base.BaseInfoProperties;
 import com.pitayafruits.grace.result.GraceJSONResult;
 import com.pitayafruits.pojo.Users;
@@ -9,10 +10,7 @@ import com.pitayafruits.service.IUsersService;
 import com.pitayafruits.vo.UsersVo;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -50,6 +48,22 @@ public class UserController extends BaseInfoProperties {
     }
 
 
+    @PostMapping("updateFace")
+    public GraceJSONResult updateFace(@RequestParam("userId") String userId,
+                                      @RequestParam("face") String face) {
+
+        ModifyUserBO modifyUserBO = new ModifyUserBO();
+
+        modifyUserBO.setUserId(userId);
+        modifyUserBO.setFace(face);
+
+        usersService.modifyUserInfo(modifyUserBO);
+
+        UsersVo usersVo = getUserInfo(modifyUserBO.getUserId(), true);
+
+        return GraceJSONResult.ok(usersVo);
+
+    }
 
 
 }
