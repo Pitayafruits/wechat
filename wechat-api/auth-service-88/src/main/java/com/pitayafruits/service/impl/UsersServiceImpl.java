@@ -3,6 +3,7 @@ package com.pitayafruits.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.pitayafruits.api.feign.FileMicroServiceFeign;
 import com.pitayafruits.base.BaseInfoProperties;
 import com.pitayafruits.enums.Sex;
 import com.pitayafruits.mapper.UsersMapper;
@@ -50,7 +51,8 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
         String[] uuidStr = uuid.split("-");
         String wechatNum = "wx" + uuidStr[0] + uuidStr[1];
         user.setWechatNum(wechatNum);
-
+        String wechatNumUrl = getQrCodeUrl(wechatNum, TEMP_STRING);
+        user.setWechatNumImg(wechatNumUrl);
         if (StringUtils.isNotBlank(nickname)) {
             user.setNickname(nickname);
         } else {
@@ -61,7 +63,7 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
         user.setFace("");
         user.setFriendCircleBg("");
         user.setEmail("");
-        user.setWechatNumImg("");
+
 
         user.setBirthday(LocalDateUtils.parseLocalDate("1980-01-01", LocalDateUtils.DATE_PATTERN));
 
@@ -77,4 +79,16 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
 
         return user;
     }
+
+    @Resource
+    private FileMicroServiceFeign fileMicroServiceFeign;
+
+    private String getQrCodeUrl(String wechatNum, String userId) {
+        try {
+            return fileMicroServiceFeign.generatorQrCode(wechatNum, userId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 }
