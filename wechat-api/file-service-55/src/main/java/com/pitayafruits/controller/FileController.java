@@ -9,13 +9,12 @@ import com.pitayafruits.grace.result.ResponseStatusEnum;
 import com.pitayafruits.utils.JsonUtils;
 import com.pitayafruits.utils.MinIOUtils;
 import com.pitayafruits.utils.QrCodeUtils;
-import com.pitayafruits.vo.UsersVo;
+import com.pitayafruits.pojo.vo.UsersVo;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

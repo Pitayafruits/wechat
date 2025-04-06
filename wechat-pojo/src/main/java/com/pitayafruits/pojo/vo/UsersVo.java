@@ -1,4 +1,4 @@
-package com.pitayafruits.vo;
+package com.pitayafruits.pojo.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
