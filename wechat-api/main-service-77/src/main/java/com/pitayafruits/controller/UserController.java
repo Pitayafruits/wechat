@@ -4,11 +4,14 @@ package com.pitayafruits.controller;
 import com.pitayafruits.api.feign.UserInfoMicroServiceFeign;
 import com.pitayafruits.base.BaseInfoProperties;
 import com.pitayafruits.grace.result.GraceJSONResult;
+import com.pitayafruits.grace.result.ResponseStatusEnum;
 import com.pitayafruits.pojo.Users;
 import com.pitayafruits.pojo.bo.ModifyUserBO;
 import com.pitayafruits.service.IUsersService;
 import com.pitayafruits.vo.UsersVo;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,6 +66,30 @@ public class UserController extends BaseInfoProperties {
 
         return GraceJSONResult.ok(usersVo);
 
+    }
+
+
+    @PostMapping("queryFriend")
+    public GraceJSONResult queryFriend(String queryString,
+                                       HttpServletRequest request) {
+
+        if (StringUtils.isBlank(queryString)) {
+            return GraceJSONResult.error();
+        }
+
+        Users friend = usersService.getByWechatNumOrMobile(queryString);
+
+        if (friend == null) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FRIEND_NOT_EXIST_ERROR);
+        }
+
+        // 判断 不能添加自己为好友
+        String myId = request.getHeader(HEADER_USER_ID);
+        if (myId.equals(friend.getId())) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.CAN_NOT_ADD_SELF_FRIEND_ERROR);
+        }
+
+        return GraceJSONResult.ok(friend);
     }
 
 

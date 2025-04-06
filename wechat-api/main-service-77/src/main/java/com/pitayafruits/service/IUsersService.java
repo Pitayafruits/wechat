@@ -19,4 +19,8 @@ public interface IUsersService {
 
     Users getById(String userId);
 
+    /**
+     * 根据微信号或者手机号精确匹配
+     */
+    Users getByWechatNumOrMobile(String queryString);
 }

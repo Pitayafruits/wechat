@@ -1,5 +1,6 @@
 package com.pitayafruits.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.pitayafruits.api.feign.FileMicroServiceFeign;
 import com.pitayafruits.base.BaseInfoProperties;
 import com.pitayafruits.exceptions.GraceException;
@@ -75,6 +76,20 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
     @Override
     public Users getById(String userId) {
         return usersMapper.selectById(userId);
+    }
+
+    /**
+     * 根据微信号或者手机号精确匹配
+     */
+    @Override
+    public Users getByWechatNumOrMobile(String queryString) {
+        QueryWrapper queryWrapper = new QueryWrapper<Users>()
+                .eq("wechat_num", queryString)
+                .or()
+                .eq("mobile", queryString);
+        Users friend = usersMapper.selectOne(queryWrapper);
+
+        return friend;
     }
 
     @Resource
