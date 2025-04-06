@@ -1,5 +1,6 @@
 package com.pitayafruits.service.impl;
 
+import com.pitayafruits.api.feign.FileMicroServiceFeign;
 import com.pitayafruits.base.BaseInfoProperties;
 import com.pitayafruits.exceptions.GraceException;
 import com.pitayafruits.grace.result.ResponseStatusEnum;
@@ -49,6 +50,10 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
             String isExist = redis.get(REDIS_USER_ALREADY_UPDATE_WECHAT_NUM + ":" + userId);
             if (StringUtils.isNotBlank(isExist)) {
                 GraceException.display(ResponseStatusEnum.WECHAT_NUM_ALREADY_MODIFIED_ERROR);
+            } else {
+                // 修改微信二维码
+                String wechatNumUrl = getQrCodeUrl(wechatNum, userId);
+                pendingUser.setWechatNumImg(wechatNumUrl);
             }
         }
 
@@ -70,6 +75,17 @@ public class UsersServiceImpl extends BaseInfoProperties implements IUsersServic
     @Override
     public Users getById(String userId) {
         return usersMapper.selectById(userId);
+    }
+
+    @Resource
+    private FileMicroServiceFeign fileMicroServiceFeign;
+
+    private String getQrCodeUrl(String wechatNum, String userId) {
+        try {
+            return fileMicroServiceFeign.generatorQrCode(wechatNum, userId);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }
