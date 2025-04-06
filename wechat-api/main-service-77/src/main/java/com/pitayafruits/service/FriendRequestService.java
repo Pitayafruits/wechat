@@ -32,4 +32,11 @@ public interface FriendRequestService {
                                        Integer page,
                                        Integer pageSize);
 
+    /**
+     * 通过好友请求
+     * @param friendRequestId
+     * @param friendRemark
+     */
+    public void passNewFriend(String friendRequestId, String friendRemark);
+
 }
