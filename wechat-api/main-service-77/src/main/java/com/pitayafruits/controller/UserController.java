@@ -1,14 +1,13 @@
 package com.pitayafruits.controller;
 
 
-import com.pitayafruits.api.feign.UserInfoMicroServiceFeign;
 import com.pitayafruits.base.BaseInfoProperties;
 import com.pitayafruits.grace.result.GraceJSONResult;
 import com.pitayafruits.grace.result.ResponseStatusEnum;
 import com.pitayafruits.pojo.Users;
 import com.pitayafruits.pojo.bo.ModifyUserBO;
 import com.pitayafruits.service.IUsersService;
-import com.pitayafruits.vo.UsersVo;
+import com.pitayafruits.pojo.vo.UsersVo;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
