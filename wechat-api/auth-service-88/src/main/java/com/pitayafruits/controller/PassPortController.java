@@ -66,7 +66,7 @@ public class PassPortController extends BaseInfoProperties {
 
         // 设置用户分布式会话
         String uToken = TOKEN_USER_PREFIX + SYMBOL_DOT + UUID.randomUUID();
-        redis.set(REDIS_USER_TOKEN + ":" + user.getId(), uToken);
+        redis.set(REDIS_USER_TOKEN + ":" + uToken, user.getId()); // 允许用户多端登录
 
 
         // 返回数据
@@ -101,7 +101,7 @@ public class PassPortController extends BaseInfoProperties {
 
         // 设置用户分布式会话
         String uToken = TOKEN_USER_PREFIX + SYMBOL_DOT + UUID.randomUUID();
-        redis.set(REDIS_USER_TOKEN + ":" + user.getId(), uToken);
+        redis.set(REDIS_USER_TOKEN + ":" + uToken, user.getId());
 
 
         // 返回数据
@@ -135,7 +135,7 @@ public class PassPortController extends BaseInfoProperties {
 
         // 设置用户分布式会话
         String uToken = TOKEN_USER_PREFIX + SYMBOL_DOT + UUID.randomUUID();
-        redis.set(REDIS_USER_TOKEN + ":" + user.getId(), uToken);
+        redis.set(REDIS_USER_TOKEN + ":" + uToken, user.getId());
 
 
         // 返回数据
