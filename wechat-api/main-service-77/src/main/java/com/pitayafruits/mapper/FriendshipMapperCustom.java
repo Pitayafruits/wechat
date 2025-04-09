@@ -17,6 +17,6 @@ import java.util.Map;
  */
 public interface FriendshipMapperCustom {
 
-    public List<ContactsVO> queryMyFriends(@Param("paramMap") Map<String, Object> map);
+    List<ContactsVO> queryMyFriends(@Param("paramMap") Map<String, Object> map);
 
 }
