@@ -5,6 +5,7 @@ import com.pitayafruits.enums.MsgTypeEnum;
 import com.pitayafruits.pojo.netty.ChatMsg;
 import com.pitayafruits.utils.JsonUtils;
 import com.pitayafruits.pojo.netty.DataContent;
+import com.pitayafruits.utils.LocalDateUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -15,6 +16,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  *  自定义助手类
@@ -51,6 +53,31 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             // 当websocket初次open的时候，初始化channel，把用户的channel和userid关联起来
             UserChannelSession.putMultiChannels(senderId, currentChannel);
             UserChannelSession.putUserChannelIdRelation(currentChannelId, senderId);
+          // 发送文字消息
+        } else if (msgType == MsgTypeEnum.WORDS.type) {
+            List<Channel> receiverChannels = UserChannelSession.getMultiChannels(receiverId);
+            if (receiverChannels == null || receiverChannels.size() == 0 || receiverChannels.isEmpty()) {
+                // multiChannels为空，表示用户离线/断线状态，消息不需要发送
+                chatMsg.setIsReceiverOnLine(false);
+            } else {
+                chatMsg.setIsReceiverOnLine(true);
+                // 当multiChannels不为空，同账户多端设备接受消息
+                for (Channel receiverChannel : receiverChannels) {
+                    Channel findChannel = clients.find(receiverChannel.id());
+                    if (findChannel != null) {
+                        dataContent.setChatMsg(chatMsg);
+                        String chatTimeFormat =
+                                LocalDateUtils.format(chatMsg.getChatTime(), LocalDateUtils.DATETIME_PATTERN_2);
+                        dataContent.setChatTime(chatTimeFormat);
+                        // 发送消息给在线的用户
+                        findChannel.writeAndFlush(
+                                new TextWebSocketFrame(
+                                        JsonUtils.objectToJson(dataContent)));
+
+                    }
+                }
+            }
+
         }
 
 

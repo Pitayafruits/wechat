@@ -49,6 +49,10 @@ public class UserController extends BaseInfoProperties {
         return usersVo;
     }
 
+    @PostMapping("get")
+    public GraceJSONResult get(@RequestParam("userId") String userId) {
+        return GraceJSONResult.ok(getUserInfo(userId, false));
+    }
 
     @PostMapping("updateFace")
     public GraceJSONResult updateFace(@RequestParam("userId") String userId,
