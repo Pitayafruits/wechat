@@ -79,15 +79,19 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             }
 
         }
-
-
-
-
-
-
-
-
-
+        List<Channel> myOtherChannels = UserChannelSession.getMyOtherChannels(senderId, currentChannelId);
+        for (Channel myOtherChannel : myOtherChannels) {
+            Channel findChannel = clients.find(myOtherChannel.id());
+            if (findChannel!= null) {
+                dataContent.setChatMsg(chatMsg);
+                String chatTimeFormat =
+                        LocalDateUtils.format(chatMsg.getChatTime(), LocalDateUtils.DATETIME_PATTERN_2);
+                // 同步消息给在线的其他设备
+                findChannel.writeAndFlush(
+                        new TextWebSocketFrame(
+                                JsonUtils.objectToJson(dataContent)));
+            }
+        }
         currentChannel.writeAndFlush(new TextWebSocketFrame(currentChannelId));
 
     }
