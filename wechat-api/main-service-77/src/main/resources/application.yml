@@ -4,6 +4,13 @@ server:
     uri-encoding: UTF-8
     max-swallow-size: -1 # 不限制请求体大小
 
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: assign_id
+      update-strategy: not_empty
+    banner: false
+  mapper-locations: classpath*:/mappers/*.xml
 
 spring:
   datasource: # 数据源

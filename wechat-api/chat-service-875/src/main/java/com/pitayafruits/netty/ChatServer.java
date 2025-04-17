@@ -1,6 +1,6 @@
 package com.pitayafruits.netty;
 
-import com.pitayafruits.netty.http.HttpServerInitializer;
+
 import com.pitayafruits.netty.websocket.WSServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
