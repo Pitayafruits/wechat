@@ -54,7 +54,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             UserChannelSession.putMultiChannels(senderId, currentChannel);
             UserChannelSession.putUserChannelIdRelation(currentChannelId, senderId);
           // 发送文字消息
-        } else if (msgType == MsgTypeEnum.WORDS.type) {
+        } else if (msgType == MsgTypeEnum.WORDS.type || msgType == MsgTypeEnum.IMAGE.type) {
             List<Channel> receiverChannels = UserChannelSession.getMultiChannels(receiverId);
             if (receiverChannels == null || receiverChannels.size() == 0 || receiverChannels.isEmpty()) {
                 // multiChannels为空，表示用户离线/断线状态，消息不需要发送

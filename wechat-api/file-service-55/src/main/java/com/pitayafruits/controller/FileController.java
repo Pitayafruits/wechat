@@ -86,4 +86,28 @@ public class FileController extends BaseInfoProperties {
         return null;
     }
 
+
+    @PostMapping("uploadChatPhoto")
+    public GraceJSONResult uploadChatPhoto(@RequestParam MultipartFile file,
+                                  String userId) throws Exception {
+        if (StringUtils.isBlank(userId)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+        }
+
+        String filename = file.getOriginalFilename();
+
+        if (StringUtils.isBlank(filename)) {
+            return GraceJSONResult.errorCustom(ResponseStatusEnum.FILE_UPLOAD_FAILD);
+        }
+
+        filename = "chat" +  "/" + userId + "/"  + "photo " + filename;
+
+        String imageUrl = MinIOUtils.uploadFile(minIOConfig.getBucketName(),
+                filename,
+                file.getInputStream(),
+                true);
+
+        return GraceJSONResult.ok(imageUrl);
+    }
+
 }
