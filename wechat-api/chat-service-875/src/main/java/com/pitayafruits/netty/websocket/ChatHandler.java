@@ -1,7 +1,9 @@
 package com.pitayafruits.netty.websocket;
 
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.pitayafruits.enums.MsgTypeEnum;
+import com.pitayafruits.netty.mq.MessagePublisher;
 import com.pitayafruits.pojo.netty.ChatMsg;
 import com.pitayafruits.utils.JsonUtils;
 import com.pitayafruits.pojo.netty.DataContent;
@@ -54,7 +56,15 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             UserChannelSession.putMultiChannels(senderId, currentChannel);
             UserChannelSession.putUserChannelIdRelation(currentChannelId, senderId);
           // 发送文字消息
-        } else if (msgType == MsgTypeEnum.WORDS.type || msgType == MsgTypeEnum.IMAGE.type) {
+        } else if (msgType == MsgTypeEnum.WORDS.type
+                || msgType == MsgTypeEnum.IMAGE.type) {
+            // 此处为MQ异步解耦，保存信息到数据库，数据库无法获得信息的主键id
+            // 此处用snowflake算法生成主键id
+            String iid = IdWorker.getIdStr();
+            chatMsg.setMsgId(iid);
+
+
+            // 发送消息
             List<Channel> receiverChannels = UserChannelSession.getMultiChannels(receiverId);
             if (receiverChannels == null || receiverChannels.size() == 0 || receiverChannels.isEmpty()) {
                 // multiChannels为空，表示用户离线/断线状态，消息不需要发送
@@ -92,6 +102,9 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
                                 JsonUtils.objectToJson(dataContent)));
             }
         }
+        // 把聊天消息作为MQ的消息发给消费者进行消费
+        MessagePublisher.sendMsgToSave(chatMsg);
+
         currentChannel.writeAndFlush(new TextWebSocketFrame(currentChannelId));
 
     }
