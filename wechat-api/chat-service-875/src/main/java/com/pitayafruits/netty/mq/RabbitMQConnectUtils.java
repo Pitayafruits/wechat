@@ -17,13 +17,6 @@ public class RabbitMQConnectUtils {
     private final String password = "guest";
     private final String virtualHost = "/";
 
-    // 生产环境 prod
-    //private final String host = "";
-    //private final int port = 5672;
-    //private final String username = "123";
-    //private final String password = "123";
-    //private final String virtualHost = "123";
-
     public ConnectionFactory factory;
 
     public ConnectionFactory getRabbitMqConnection() {
