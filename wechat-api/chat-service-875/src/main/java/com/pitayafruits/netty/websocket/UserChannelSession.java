@@ -52,4 +52,18 @@ public class UserChannelSession {
         return multiSession.get(userId);
     }
 
+    public static List<Channel> getMyOtherChannels(String userId, String channelId) {
+        List<Channel> channels = getMultiChannels(channelId);
+        if (channels == null || channels.size() == 0) {
+            return null;
+        }
+        List<Channel> myOtherChannels = new ArrayList<>();
+        for (Channel channel : channels) {
+            if (!channel.id().asLongText().equals(channelId)) {
+                myOtherChannels.add(channel);
+            }
+        }
+        return myOtherChannels;
+    }
+
 }
