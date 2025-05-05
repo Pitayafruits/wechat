@@ -23,5 +23,4 @@ public class MessagePublisher {
                 ROUTING_KEY_SEND);
     }
 
-
 }

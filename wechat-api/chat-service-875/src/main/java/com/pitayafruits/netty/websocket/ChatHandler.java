@@ -1,13 +1,17 @@
 package com.pitayafruits.netty.websocket;
 
 
+import com.a3test.component.idworker.IdWorkerConfigBean;
+import com.a3test.component.idworker.Snowflake;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.pitayafruits.enums.MsgTypeEnum;
+import com.pitayafruits.grace.result.GraceJSONResult;
 import com.pitayafruits.netty.mq.MessagePublisher;
 import com.pitayafruits.pojo.netty.ChatMsg;
 import com.pitayafruits.utils.JsonUtils;
 import com.pitayafruits.pojo.netty.DataContent;
 import com.pitayafruits.utils.LocalDateUtils;
+import com.pitayafruits.utils.OkHttpUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -30,10 +34,13 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
     public static ChannelGroup clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext,
-                                TextWebSocketFrame textWebSocketFrame) throws Exception {
-        // 获取客户端传输过来的消息并且解析
-        String content = textWebSocketFrame.text();
+    protected void channelRead0(ChannelHandlerContext ctx,
+                                TextWebSocketFrame msg) throws Exception {
+        // 获得客户端传输过来的消息
+        String content = msg.text();
+        System.out.println("接受到的数据：" + content);
+
+        // 1. 获取客户端发来的消息并且解析
         DataContent dataContent = JsonUtils.jsonToPojo(content, DataContent.class);
         ChatMsg chatMsg = dataContent.getChatMsg();
 
@@ -41,73 +48,108 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
         String receiverId = chatMsg.getReceiverId();
         String senderId = chatMsg.getSenderId();
 
-        // 时间校准
+
+        // 判断是否黑名单 start
+        // 如果双方只要有一方是黑名单，则终止发送
+        GraceJSONResult result = OkHttpUtil.get("http://127.0.0.1:1000/friendship/isBlack?friendId1st=" + receiverId
+                + "&friendId2nd=" + senderId);
+        boolean isBlack = (Boolean) result.getData();
+        System.out.println("当前的黑名单关系为: " + isBlack);
+        if (isBlack) {
+            return;
+        }
+        // 判断是否黑名单 end
+
+
+        // 时间校准，以服务器的时间为准
         chatMsg.setChatTime(LocalDateTime.now());
 
         Integer msgType = chatMsg.getMsgType();
 
         // 获取channel
-        Channel currentChannel = channelHandlerContext.channel();
+        Channel currentChannel = ctx.channel();
         String currentChannelId = currentChannel.id().asLongText();
+        String currentChannelIdShort = currentChannel.id().asShortText();
 
-        // 根据消息类型处理不同的业务
+        System.out.println("客户端currentChannelId：" + currentChannelId);
+        System.out.println("客户端currentChannelIdShort：" + currentChannelIdShort);
+
+        // 2. 判断消息类型，根据不同的类型来处理不同的业务
         if (msgType == MsgTypeEnum.CONNECT_INIT.type) {
-            // 当websocket初次open的时候，初始化channel，把用户的channel和userid关联起来
+            // 当websocket初次open的时候，初始化channel，把channel和用户userid管来起来
             UserChannelSession.putMultiChannels(senderId, currentChannel);
             UserChannelSession.putUserChannelIdRelation(currentChannelId, senderId);
-          // 发送文字消息
         } else if (msgType == MsgTypeEnum.WORDS.type
-                || msgType == MsgTypeEnum.IMAGE.type) {
-            // 此处为MQ异步解耦，保存信息到数据库，数据库无法获得信息的主键id
-            // 此处用snowflake算法生成主键id
+                || msgType == MsgTypeEnum.IMAGE.type
+                || msgType == MsgTypeEnum.VIDEO.type
+                || msgType == MsgTypeEnum.VOICE.type
+        ) {
+
+            // 此处为mq异步解耦，保存信息到数据库，数据库无法获得信息的主键id，
+            // 所以此处可以用snowflake直接生成唯一的主键id
+            Snowflake snowflake = new Snowflake(new IdWorkerConfigBean());
+            String sid = snowflake.nextId();
+            System.out.println("sid = " + sid);
+
             String iid = IdWorker.getIdStr();
-            chatMsg.setMsgId(iid);
+            System.out.println("iid = " + iid);
+
+            chatMsg.setMsgId(sid);
 
 
             // 发送消息
             List<Channel> receiverChannels = UserChannelSession.getMultiChannels(receiverId);
             if (receiverChannels == null || receiverChannels.size() == 0 || receiverChannels.isEmpty()) {
-                // multiChannels为空，表示用户离线/断线状态，消息不需要发送
+                // receiverChannels为空，表示用户离线/断线状态，消息不需要发送，后续可以存储到数据库
                 chatMsg.setIsReceiverOnLine(false);
             } else {
                 chatMsg.setIsReceiverOnLine(true);
-                // 当multiChannels不为空，同账户多端设备接受消息
-                for (Channel receiverChannel : receiverChannels) {
-                    Channel findChannel = clients.find(receiverChannel.id());
+
+                // 当receiverChannels为空不为空的时候，同账户多端设备接受消息
+                for (Channel c : receiverChannels) {
+                    Channel findChannel = clients.find(c.id());
                     if (findChannel != null) {
+
+                        if (msgType == MsgTypeEnum.VOICE.type) {
+                            chatMsg.setIsRead(false);
+                        }
+
                         dataContent.setChatMsg(chatMsg);
-                        String chatTimeFormat =
-                                LocalDateUtils.format(chatMsg.getChatTime(), LocalDateUtils.DATETIME_PATTERN_2);
+                        String chatTimeFormat = LocalDateUtils
+                                .format(chatMsg.getChatTime(),
+                                        LocalDateUtils.DATETIME_PATTERN_2);
                         dataContent.setChatTime(chatTimeFormat);
                         // 发送消息给在线的用户
                         findChannel.writeAndFlush(
                                 new TextWebSocketFrame(
                                         JsonUtils.objectToJson(dataContent)));
-
                     }
+
                 }
             }
 
+            // 把聊天信息作为mq的消息发送给消费者进行消费处理(保存到数据库)
+            MessagePublisher.sendMsgToSave(chatMsg);
         }
-        List<Channel> myOtherChannels = UserChannelSession.getMyOtherChannels(senderId, currentChannelId);
-        for (Channel myOtherChannel : myOtherChannels) {
-            Channel findChannel = clients.find(myOtherChannel.id());
-            if (findChannel!= null) {
+
+        List<Channel> myOtherChannels = UserChannelSession
+                .getMyOtherChannels(senderId, currentChannelId);
+        for (Channel c : myOtherChannels) {
+            Channel findChannel = clients.find(c.id());
+            if (findChannel != null) {
                 dataContent.setChatMsg(chatMsg);
-                String chatTimeFormat =
-                        LocalDateUtils.format(chatMsg.getChatTime(), LocalDateUtils.DATETIME_PATTERN_2);
-                // 同步消息给在线的其他设备
+                String chatTimeFormat = LocalDateUtils
+                        .format(chatMsg.getChatTime(),
+                                LocalDateUtils.DATETIME_PATTERN_2);
+                dataContent.setChatTime(chatTimeFormat);
+                // 同步消息给在线的其他设备端
                 findChannel.writeAndFlush(
                         new TextWebSocketFrame(
                                 JsonUtils.objectToJson(dataContent)));
             }
         }
-        // 把聊天消息作为MQ的消息发给消费者进行消费
-        MessagePublisher.sendMsgToSave(chatMsg);
-
-        currentChannel.writeAndFlush(new TextWebSocketFrame(currentChannelId));
-
     }
+
 
     // 当客户端连接服务器后，获取客户端的channel，并且放到ChannelGroup中进行管理
     @Override
