@@ -2,6 +2,7 @@ package com.pitayafruits.netty;
 
 
 import com.pitayafruits.netty.utils.JedisPoolUtils;
+import com.pitayafruits.netty.utils.ZookeeperRegister;
 import com.pitayafruits.netty.websocket.WSServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -23,7 +24,7 @@ public class ChatServer {
     public static final Integer nettyDefaultPort = 875;
     public static final String initOnlineCounts = "0";
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
         // 定义主从线程池
         // 主线程池接受客户端连接，不做任何处理
         EventLoopGroup bossGroup = new NioEventLoopGroup();
@@ -32,6 +33,9 @@ public class ChatServer {
 
         // netty服务启动的时候，从redis中查找端口
         Integer nettyPort = selectPort(nettyDefaultPort);
+
+        ZookeeperRegister.registerNettyServer("Netty-Server-List",
+                ZookeeperRegister.getLocalIp(), nettyPort);
 
         try {
             // 构建netty服务器
