@@ -47,7 +47,15 @@ spring:
     username: guest
     password: guest
     virtual-host: /
-
+# zookeeper配置
+zookeeper:
+  curator:
+    host: 127.0.0.1:2181
+    connectionTimeoutMs: 30000
+    sessionTimeoutMs: 3000
+    sleepMsBetweenRetry: 2000
+    maxRetries: 3
+    namespace: wechat
 
 # 日志级别
 logging:
