@@ -53,6 +53,11 @@
             <version>5.8.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.9.3</version>
+        </dependency>
     </dependencies>
 
 
