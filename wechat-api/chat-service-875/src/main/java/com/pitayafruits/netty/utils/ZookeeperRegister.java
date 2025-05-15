@@ -3,6 +3,7 @@ package com.pitayafruits.netty.utils;
 import com.pitayafruits.pojo.netty.NettyServerNode;
 import com.pitayafruits.utils.JsonUtils;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 
@@ -14,7 +15,7 @@ public class ZookeeperRegister {
 
     public static void registerNettyServer(String nodeName,
                                            String ip,
-                                           Integer port) throws Exception{
+                                           Integer port) throws Exception {
 
         CuratorFramework zkClient = CuratorConfig.getClient();
         String path = "/" + nodeName;
@@ -46,6 +47,7 @@ public class ZookeeperRegister {
 
     /**
      * 增加在线人数
+     *
      * @param serverNode
      */
     public static void incrementOnlineCounts(NettyServerNode serverNode) throws Exception {
@@ -54,6 +56,7 @@ public class ZookeeperRegister {
 
     /**
      * 减少在线人数
+     *
      * @param serverNode
      */
     public static void decrementOnlineCounts(NettyServerNode serverNode) throws Exception {
@@ -62,25 +65,36 @@ public class ZookeeperRegister {
 
     /**
      * 处理在线人数的增减
+     *
      * @param serverNode
      * @param counts
      */
-    public  static  void dealOnlineCounts(NettyServerNode serverNode,
-                                          Integer counts) throws Exception {
+    public static void dealOnlineCounts(NettyServerNode serverNode,
+                                        Integer counts) throws Exception {
         CuratorFramework zkClient = CuratorConfig.getClient();
+
+        InterProcessReadWriteLock readWriteLock =
+                new InterProcessReadWriteLock(zkClient, "rw-lock");
+
+        readWriteLock.writeLock().acquire();
+
         String path = "/server-list";
         List<String> list = zkClient.getChildren().forPath(path);
 
-        for (String node : list) {
-            String nodeValue = new String(zkClient.getData().forPath(path + "/" + node));
-            NettyServerNode pendingNode = JsonUtils.jsonToPojo(nodeValue, NettyServerNode.class);
+        try {
+            for (String node : list) {
+                String nodeValue = new String(zkClient.getData().forPath(path + "/" + node));
+                NettyServerNode pendingNode = JsonUtils.jsonToPojo(nodeValue, NettyServerNode.class);
 
-            if (pendingNode.getIp().equals(serverNode.getIp())
-            &&(pendingNode.getPort().intValue() == serverNode.getPort().intValue())) {
-                pendingNode.setOnlineCounts(pendingNode.getOnlineCounts() + counts);
-                String nodeJson = JsonUtils.objectToJson(pendingNode);
-                zkClient.setData().forPath(path + "/" + node, nodeJson.getBytes());
+                if (pendingNode.getIp().equals(serverNode.getIp())
+                        && (pendingNode.getPort().intValue() == serverNode.getPort().intValue())) {
+                    pendingNode.setOnlineCounts(pendingNode.getOnlineCounts() + counts);
+                    String nodeJson = JsonUtils.objectToJson(pendingNode);
+                    zkClient.setData().forPath(path + "/" + node, nodeJson.getBytes());
+                }
             }
+        } finally {
+            readWriteLock.writeLock().release();
         }
     }
 
