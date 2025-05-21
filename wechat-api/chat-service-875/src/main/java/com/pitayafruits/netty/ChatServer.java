@@ -1,6 +1,7 @@
 package com.pitayafruits.netty;
 
 
+import com.pitayafruits.netty.mq.RabbitMQConnectUtils;
 import com.pitayafruits.netty.utils.JedisPoolUtils;
 import com.pitayafruits.netty.utils.ZookeeperRegister;
 import com.pitayafruits.netty.websocket.WSServerInitializer;
@@ -34,8 +35,14 @@ public class ChatServer {
         // netty服务启动的时候，从redis中查找端口
         Integer nettyPort = selectPort(nettyDefaultPort);
 
+        // 注册netty服务到zookeeper中
         ZookeeperRegister.registerNettyServer("Netty-Server-List",
                 ZookeeperRegister.getLocalIp(), nettyPort);
+
+        // 启动消费者进行监听，队列根据动态生成的端口动态拼接
+        String queueName = "queue_" +  ZookeeperRegister.getLocalIp() + "_" + nettyPort;
+        RabbitMQConnectUtils mqConnectUtils = new RabbitMQConnectUtils();
+        mqConnectUtils.listen("fanout_exchange", queueName);
 
         try {
             // 构建netty服务器

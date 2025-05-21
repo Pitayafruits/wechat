@@ -2,6 +2,7 @@ package com.pitayafruits.netty.mq;
 
 import com.rabbitmq.client.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,6 +82,45 @@ public class RabbitMQConnectUtils {
 
     public void setConnection(Connection connection) throws Exception {
         getAndSetConnection(false, connection);
+    }
+
+    public void listen(String exchangeName, String queueName) throws Exception{
+        Connection connection = getConnection();
+        Channel channel = connection.createChannel();
+
+        // 定义交换机 FANOUT 发布订阅模式（广播模式）
+        channel.exchangeDeclare(exchangeName, BuiltinExchangeType.FANOUT, true, false, null);
+
+        // 定义队列
+        channel.queueDeclare(queueName, true, false, false, null);
+
+        // 把队列绑定到交换机
+        channel.queueBind(queueName, exchangeName, "");
+
+        Consumer consumer = new DefaultConsumer(channel) {
+            /**
+             * 重写消息配送（交付）方法
+             * @param consumerTag 消息的标识
+             * @param envelope 一些消息，比如交换机，路由key，消息id等
+             * @param properties 配置信息和内容
+             * @param body 收到的消息数据内容
+             * @throws IOException
+             */
+            @Override
+            public void handleDelivery(String consumerTag,
+                                       Envelope envelope,
+                                       AMQP.BasicProperties properties,
+                                       byte[] body) throws IOException {
+                String exchange = envelope.getExchange();
+                if (exchange.equalsIgnoreCase(exchangeName)) {
+                    String message = new String(body);
+                    System.out.println("收到消息：" + message);
+                }
+            }
+        };
+
+        // 监听队列
+        channel.basicConsume(queueName, true, consumer);
     }
 
     private synchronized Connection getAndSetConnection(boolean isGet, Connection connection) throws Exception {
