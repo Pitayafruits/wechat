@@ -10,9 +10,9 @@ import com.pitayafruits.netty.mq.MessagePublisher;
 import com.pitayafruits.netty.utils.JedisPoolUtils;
 import com.pitayafruits.netty.utils.ZookeeperRegister;
 import com.pitayafruits.pojo.netty.ChatMsg;
+import com.pitayafruits.pojo.netty.DataContent;
 import com.pitayafruits.pojo.netty.NettyServerNode;
 import com.pitayafruits.utils.JsonUtils;
-import com.pitayafruits.pojo.netty.DataContent;
 import com.pitayafruits.utils.LocalDateUtils;
 import com.pitayafruits.utils.OkHttpUtil;
 import io.netty.channel.Channel;
@@ -20,7 +20,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import redis.clients.jedis.Jedis;
@@ -29,10 +28,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 自定义助手类
+ *  自定义助手类
  */
 // TextWebSocketFrame: 在netty中，是用于为websocket专门处理文本数据对象，frame是消息的载体
-public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+public class ChatHandler_Single extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
     // 用于记录和管理所有客户端的channel组
     public static ChannelGroup clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -108,26 +107,59 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
 
             chatMsg.setMsgId(sid);
 
-            if (msgType == MsgTypeEnum.VOICE.type) {
-                chatMsg.setIsRead(false);
+
+            // 发送消息
+            List<Channel> receiverChannels = UserChannelSession.getMultiChannels(receiverId);
+            if (receiverChannels == null || receiverChannels.size() == 0 || receiverChannels.isEmpty()) {
+                // receiverChannels为空，表示用户离线/断线状态，消息不需要发送，后续可以存储到数据库
+                chatMsg.setIsReceiverOnLine(false);
+            } else {
+                chatMsg.setIsReceiverOnLine(true);
+
+                // 当receiverChannels为空不为空的时候，同账户多端设备接受消息
+                for (Channel c : receiverChannels) {
+                    Channel findChannel = clients.find(c.id());
+                    if (findChannel != null) {
+
+                        if (msgType == MsgTypeEnum.VOICE.type) {
+                            chatMsg.setIsRead(false);
+                        }
+
+                        dataContent.setChatMsg(chatMsg);
+                        String chatTimeFormat = LocalDateUtils
+                                .format(chatMsg.getChatTime(),
+                                        LocalDateUtils.DATETIME_PATTERN_2);
+                        dataContent.setChatTime(chatTimeFormat);
+                        // 发送消息给在线的用户
+                        findChannel.writeAndFlush(
+                                new TextWebSocketFrame(
+                                        JsonUtils.objectToJson(dataContent)));
+                    }
+
+                }
             }
 
-            dataContent.setChatMsg(chatMsg);
-            String chatTimeFormat = LocalDateUtils
-                    .format(chatMsg.getChatTime(),
-                            LocalDateUtils.DATETIME_PATTERN_2);
-            dataContent.setChatTime(chatTimeFormat);
-            // 使用扩展字段填入当前需要需要被排除发送的channelId
-            dataContent.setExtend(currentChannelId);
-            //  把聊天消息作为mq消息进行广播
-            MessagePublisher.sendMsgToNettyServers(JsonUtils.objectToJson(dataContent));
+            // 把聊天信息作为mq的消息发送给消费者进行消费处理(保存到数据库)
+            MessagePublisher.sendMsgToSave(chatMsg);
+        }
 
-
-        // 把聊天信息作为mq的消息发送给消费者进行消费处理(保存到数据库)
-        MessagePublisher.sendMsgToSave(chatMsg);
+        List<Channel> myOtherChannels = UserChannelSession
+                .getMyOtherChannels(senderId, currentChannelId);
+        for (Channel c : myOtherChannels) {
+            Channel findChannel = clients.find(c.id());
+            if (findChannel != null) {
+                dataContent.setChatMsg(chatMsg);
+                String chatTimeFormat = LocalDateUtils
+                        .format(chatMsg.getChatTime(),
+                                LocalDateUtils.DATETIME_PATTERN_2);
+                dataContent.setChatTime(chatTimeFormat);
+                // 同步消息给在线的其他设备端
+                findChannel.writeAndFlush(
+                        new TextWebSocketFrame(
+                                JsonUtils.objectToJson(dataContent)));
+            }
+        }
     }
-    UserChannelSession.outputMulti();
-}
 
 
     // 当客户端连接服务器后，获取客户端的channel，并且放到ChannelGroup中进行管理

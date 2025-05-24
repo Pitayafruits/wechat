@@ -1,6 +1,10 @@
 package com.pitayafruits.netty.websocket;
 
+import com.pitayafruits.pojo.netty.DataContent;
+import com.pitayafruits.utils.JsonUtils;
 import io.netty.channel.Channel;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,5 +69,35 @@ public class UserChannelSession {
         }
         return myOtherChannels;
     }
+
+    public static void outputMulti() {
+
+        for (Map.Entry<String, List<Channel>> entry : multiSession.entrySet()) {
+            List<Channel> temp = entry.getValue();
+            for (Channel c : temp) {
+                System.out.println("\t\t ChannelId: " + c.id().asLongText());
+            }
+        }
+    }
+
+
+    public static void sendToTarget(List<Channel> receiverChannels, DataContent dataContent) {
+
+        ChannelGroup clients = ChatHandler.clients;
+
+        if (receiverChannels == null || receiverChannels.isEmpty()) {
+            return;
+        }
+
+        for (Channel c : receiverChannels) {
+            Channel findChannel = clients.find(c.id());
+            if (findChannel != null) {
+                findChannel.writeAndFlush(new TextWebSocketFrame(JsonUtils.objectToJson(dataContent)));
+            }
+        }
+
+
+    }
+
 
 }
