@@ -1,5 +1,8 @@
 package com.pitayafruits.netty.mq;
 
+import com.pitayafruits.netty.websocket.UserChannelSession;
+import com.pitayafruits.pojo.netty.DataContent;
+import com.pitayafruits.utils.JsonUtils;
 import com.rabbitmq.client.*;
 
 import java.io.IOException;
@@ -111,10 +114,22 @@ public class RabbitMQConnectUtils {
                                        Envelope envelope,
                                        AMQP.BasicProperties properties,
                                        byte[] body) throws IOException {
+                String msg = new String(body);
                 String exchange = envelope.getExchange();
                 if (exchange.equalsIgnoreCase(exchangeName)) {
-                    String message = new String(body);
-                    System.out.println("收到消息：" + message);
+                    DataContent dataContent = JsonUtils.jsonToPojo(msg, DataContent.class);
+                    String senderId = dataContent.getChatMsg().getSenderId();
+                    String receiverId = dataContent.getChatMsg().getReceiverId();
+                    // 广播到所有netty集群节点且发送给用户聊天消息
+                    List<io.netty.channel.Channel> receiverChannels =
+                            UserChannelSession.getMultiChannels(receiverId);
+
+                    UserChannelSession.sendToTarget(receiverChannels, dataContent);
+                    // 广播到所有netty集群节点且同步到其他设备聊天消息
+                    String currentChannelId = dataContent.getExtend();
+                    List<io.netty.channel.Channel> sendChannels = UserChannelSession
+                            .getMyOtherChannels(senderId, currentChannelId);
+                    UserChannelSession.sendToTarget(sendChannels, dataContent);
                 }
             }
         };
